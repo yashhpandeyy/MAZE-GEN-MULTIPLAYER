@@ -168,7 +168,7 @@ export function MazeGeneratorClient() {
         </h1>
         <MazePossibilities width={width} height={height} />
         <p className="mt-2 font-body text-lg text-muted-foreground max-w-3xl">
-          This tool procedurally generates intricate mazes using a unique, custom-developed algorithm. It forges a complex labyrinth by first creating a perfect maze in a single quadrant, then applying a four-way symmetrical mirroring with custom wall-swapping logic. This guarantees that the path from each of the four corners to the center is perfectly balanced in length and complexity, creating a fair and unique challenge every time.
+          This tool procedurally generates mazes using a unique, custom-developed algorithm. It forges a labyrinth by first creating a perfect maze in a single quadrant, then applying a four-way symmetrical mirroring with custom wall-swapping logic. This guarantees the path from each of the four corners to the center is perfectly balanced.
         </p>
       </header>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
