@@ -32,40 +32,44 @@ export function generateMaze(width: number, height: number): Cell[][] {
   for (let y = 0; y < quadHeight; y++) {
     for (let x = 0; x < quadWidth; x++) {
       const sourceCell = quadrant[y][x];
-      const targetX = width - 1 - x;
-      const targetY = height - 1 - y;
+      const xMirror = width - 1 - x;
+      const yMirror = height - 1 - y;
 
       // Top-left (original)
-      let cellTL = fullMaze[y][x];
-      cellTL.top = sourceCell.top;
-      cellTL.right = sourceCell.right;
-      cellTL.bottom = sourceCell.bottom;
-      cellTL.left = sourceCell.left;
-      cellTL.visited = sourceCell.visited;
+      if (y < height && x < width) {
+        let cellTL = fullMaze[y][x];
+        cellTL.top = sourceCell.top;
+        cellTL.right = sourceCell.right;
+        cellTL.bottom = sourceCell.bottom;
+        cellTL.left = sourceCell.left;
+      }
 
       // Top-right (mirrored horizontally)
-      let cellTR = fullMaze[y][targetX];
-      cellTR.top = sourceCell.top;
-      cellTR.right = sourceCell.left;
-      cellTR.bottom = sourceCell.bottom;
-      cellTR.left = sourceCell.right;
-      cellTR.visited = sourceCell.visited;
+      if (y < height && xMirror < width) {
+        let cellTR = fullMaze[y][xMirror];
+        cellTR.top = sourceCell.top;
+        cellTR.right = sourceCell.left; // Swapped
+        cellTR.bottom = sourceCell.bottom;
+        cellTR.left = sourceCell.right; // Swapped
+      }
       
       // Bottom-left (mirrored vertically)
-      let cellBL = fullMaze[targetY][x];
-      cellBL.top = sourceCell.bottom;
-      cellBL.right = sourceCell.right;
-      cellBL.bottom = sourceCell.top;
-      cellBL.left = sourceCell.left;
-      cellBL.visited = sourceCell.visited;
+      if (yMirror < height && x < width) {
+        let cellBL = fullMaze[yMirror][x];
+        cellBL.top = sourceCell.bottom; // Swapped
+        cellBL.right = sourceCell.right;
+        cellBL.bottom = sourceCell.top; // Swapped
+        cellBL.left = sourceCell.left;
+      }
 
       // Bottom-right (mirrored horizontally and vertically)
-      let cellBR = fullMaze[targetY][targetX];
-      cellBR.top = sourceCell.bottom;
-      cellBR.right = sourceCell.left;
-      cellBR.bottom = sourceCell.top;
-      cellBR.left = sourceCell.right;
-      cellBR.visited = sourceCell.visited;
+      if (yMirror < height && xMirror < width) {
+        let cellBR = fullMaze[yMirror][xMirror];
+        cellBR.top = sourceCell.bottom; // Swapped
+        cellBR.right = sourceCell.left; // Swapped
+        cellBR.bottom = sourceCell.top; // Swapped
+        cellBR.left = sourceCell.right; // Swapped
+      }
     }
   }
 
@@ -74,21 +78,15 @@ export function generateMaze(width: number, height: number): Cell[][] {
   const centerY = Math.floor(height / 2);
 
   // Remove walls around the center cell to make it an accessible meeting point.
-  // This ensures a fair path for all four players to the exit.
-  
-  // Top neighbor
   if (centerY > 0) fullMaze[centerY - 1][centerX].bottom = false;
   fullMaze[centerY][centerX].top = false;
 
-  // Bottom neighbor
   if (centerY < height - 1) fullMaze[centerY + 1][centerX].top = false;
   fullMaze[centerY][centerX].bottom = false;
 
-  // Left neighbor
   if (centerX > 0) fullMaze[centerY][centerX - 1].right = false;
   fullMaze[centerY][centerX].left = false;
   
-  // Right neighbor
   if (centerX < width - 1) fullMaze[centerY][centerX + 1].left = false;
   fullMaze[centerY][centerX].right = false;
 
@@ -111,7 +109,7 @@ function generateQuadrantMaze(width: number, height: number): Cell[][] {
   );
 
   const stack: Cell[] = [];
-  // Start from top-left corner (player 1's starting point for the quadrant)
+  // Start from top-left corner
   let current = grid[0][0];
   current.visited = true;
   stack.push(current);
