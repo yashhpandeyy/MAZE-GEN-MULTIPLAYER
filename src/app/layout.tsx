@@ -3,8 +3,8 @@ import { Toaster } from "@/components/ui/toaster"
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Labyrinth Forge',
-  description: 'A procedural 2D maze generator',
+  title: 'Procedural Maze Gen',
+  description: 'A procedural 2D maze generator using a unique symmetrical algorithm.',
 };
 
 export default function RootLayout({

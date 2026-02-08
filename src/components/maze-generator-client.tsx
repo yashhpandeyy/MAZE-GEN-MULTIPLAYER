@@ -121,7 +121,7 @@ export function MazeGeneratorClient() {
         const pngUrl = canvas.toDataURL('image/png');
         const link = document.createElement('a');
         link.href = pngUrl;
-        link.download = `labyrinth-forge-maze-${width}x${height}.png`;
+        link.download = `procedural-maze-gen-${width}x${height}.png`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -164,11 +164,11 @@ export function MazeGeneratorClient() {
       <header className="text-center flex flex-col items-center gap-4">
         <LogoIcon className="w-16 h-16 text-primary" />
         <h1 className="font-headline text-5xl md:text-6xl font-bold tracking-tight text-primary">
-          Labyrinth Forge
+          Procedural Maze Gen
         </h1>
         <MazePossibilities width={width} height={height} />
-        <p className="mt-2 font-body text-lg text-muted-foreground max-w-2xl">
-          Craft intricate mazes with a single click. Adjust the grid size and let our procedural algorithm forge a unique challenge every time.
+        <p className="mt-2 font-body text-lg text-muted-foreground max-w-3xl">
+          This tool procedurally generates intricate mazes using a unique, custom-developed algorithm. It forges a complex labyrinth by first creating a perfect maze in a single quadrant, then applying a four-way symmetrical mirroring with custom wall-swapping logic. This guarantees that the path from each of the four corners to the center is perfectly balanced in length and complexity, creating a fair and unique challenge every time.
         </p>
       </header>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
