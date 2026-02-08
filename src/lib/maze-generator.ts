@@ -69,29 +69,28 @@ export function generateMaze(width: number, height: number): Cell[][] {
     }
   }
 
-  // 3. Create openings to connect the quadrants symmetrically.
+  // 3. Connect the quadrants symmetrically through the center.
   const centerX = Math.floor(width / 2);
   const centerY = Math.floor(height / 2);
 
-  // Create a horizontal opening. Pick a random row and open the wall on the center vertical axis.
-  const openY = Math.floor(Math.random() * centerY); // 0 to centerY-1
-  fullMaze[openY][centerX - 1].right = false;
-  fullMaze[openY][centerX].left = false;
+  // Remove walls around the center cell to make it an accessible meeting point.
+  // This ensures a fair path for all four players to the exit.
   
-  // Symmetrical opening on the bottom side
-  const symmY = height - 1 - openY;
-  fullMaze[symmY][centerX - 1].right = false;
-  fullMaze[symmY][centerX].left = false;
+  // Top neighbor
+  fullMaze[centerY - 1][centerX].bottom = false;
+  fullMaze[centerY][centerX].top = false;
 
-  // Create a vertical opening. Pick a random column and open the wall on the center horizontal axis.
-  const openX = Math.floor(Math.random() * centerX); // 0 to centerX-1
-  fullMaze[centerY - 1][openX].bottom = false;
-  fullMaze[centerY][openX].top = false;
+  // Bottom neighbor
+  fullMaze[centerY + 1][centerX].top = false;
+  fullMaze[centerY][centerX].bottom = false;
 
-  // Symmetrical opening on the right side
-  const symmX = width - 1 - openX;
-  fullMaze[centerY - 1][symmX].bottom = false;
-  fullMaze[centerY][symmX].top = false;
+  // Left neighbor
+  fullMaze[centerY][centerX - 1].right = false;
+  fullMaze[centerY][centerX].left = false;
+  
+  // Right neighbor
+  fullMaze[centerY][centerX + 1].left = false;
+  fullMaze[centerY][centerX].right = false;
 
   return fullMaze;
 }
