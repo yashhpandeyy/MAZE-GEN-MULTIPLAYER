@@ -36,36 +36,36 @@ export function generateMaze(width: number, height: number): Cell[][] {
       const targetY = height - 1 - y;
 
       // Top-left (original)
-      let cell = fullMaze[y][x];
-      cell.top = sourceCell.top;
-      cell.right = sourceCell.right;
-      cell.bottom = sourceCell.bottom;
-      cell.left = sourceCell.left;
-      cell.visited = sourceCell.visited;
+      let cellTL = fullMaze[y][x];
+      cellTL.top = sourceCell.top;
+      cellTL.right = sourceCell.right;
+      cellTL.bottom = sourceCell.bottom;
+      cellTL.left = sourceCell.left;
+      cellTL.visited = sourceCell.visited;
 
       // Top-right (mirrored horizontally)
-      cell = fullMaze[y][targetX];
-      cell.top = sourceCell.top;
-      cell.right = sourceCell.left;
-      cell.bottom = sourceCell.bottom;
-      cell.left = sourceCell.right;
-      cell.visited = sourceCell.visited;
+      let cellTR = fullMaze[y][targetX];
+      cellTR.top = sourceCell.top;
+      cellTR.right = sourceCell.left;
+      cellTR.bottom = sourceCell.bottom;
+      cellTR.left = sourceCell.right;
+      cellTR.visited = sourceCell.visited;
       
       // Bottom-left (mirrored vertically)
-      cell = fullMaze[targetY][x];
-      cell.top = sourceCell.bottom;
-      cell.right = sourceCell.right;
-      cell.bottom = sourceCell.top;
-      cell.left = sourceCell.left;
-      cell.visited = sourceCell.visited;
+      let cellBL = fullMaze[targetY][x];
+      cellBL.top = sourceCell.bottom;
+      cellBL.right = sourceCell.right;
+      cellBL.bottom = sourceCell.top;
+      cellBL.left = sourceCell.left;
+      cellBL.visited = sourceCell.visited;
 
       // Bottom-right (mirrored horizontally and vertically)
-      cell = fullMaze[targetY][targetX];
-      cell.top = sourceCell.bottom;
-      cell.right = sourceCell.left;
-      cell.bottom = sourceCell.top;
-      cell.left = sourceCell.right;
-      cell.visited = sourceCell.visited;
+      let cellBR = fullMaze[targetY][targetX];
+      cellBR.top = sourceCell.bottom;
+      cellBR.right = sourceCell.left;
+      cellBR.bottom = sourceCell.top;
+      cellBR.left = sourceCell.right;
+      cellBR.visited = sourceCell.visited;
     }
   }
 
@@ -77,19 +77,19 @@ export function generateMaze(width: number, height: number): Cell[][] {
   // This ensures a fair path for all four players to the exit.
   
   // Top neighbor
-  fullMaze[centerY - 1][centerX].bottom = false;
+  if (centerY > 0) fullMaze[centerY - 1][centerX].bottom = false;
   fullMaze[centerY][centerX].top = false;
 
   // Bottom neighbor
-  fullMaze[centerY + 1][centerX].top = false;
+  if (centerY < height - 1) fullMaze[centerY + 1][centerX].top = false;
   fullMaze[centerY][centerX].bottom = false;
 
   // Left neighbor
-  fullMaze[centerY][centerX - 1].right = false;
+  if (centerX > 0) fullMaze[centerY][centerX - 1].right = false;
   fullMaze[centerY][centerX].left = false;
   
   // Right neighbor
-  fullMaze[centerY][centerX + 1].left = false;
+  if (centerX < width - 1) fullMaze[centerY][centerX + 1].left = false;
   fullMaze[centerY][centerX].right = false;
 
   return fullMaze;
