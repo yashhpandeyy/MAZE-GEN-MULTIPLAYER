@@ -8,9 +8,10 @@ export interface Cell {
   visited: boolean;
 }
 
-// Main function to generate a maze for the full grid
+// Generates a maze only in the top-left quadrant of the grid.
 export function generateMaze(width: number, height: number): Cell[][] {
-  const grid: Cell[][] = Array.from({ length: height }, (_, y) =>
+  // 1. Initialize the full grid with all walls present.
+  const fullMaze: Cell[][] = Array.from({ length: height }, (_, y) =>
     Array.from({ length: width }, (_, x) => ({
       x,
       y,
@@ -22,15 +23,19 @@ export function generateMaze(width: number, height: number): Cell[][] {
     }))
   );
 
+  // 2. Define the dimensions of the top-left quadrant.
+  const quadWidth = Math.ceil(width / 2);
+  const quadHeight = Math.ceil(height / 2);
+
+  // 3. Run Randomized DFS only on the top-left quadrant.
   const stack: Cell[] = [];
-  // Start from top-left corner (Player 1's starting point)
-  let current = grid[0][0];
+  let current = fullMaze[0][0];
   current.visited = true;
   stack.push(current);
 
   while (stack.length > 0) {
     current = stack.pop()!;
-    const neighbors = getUnvisitedNeighbors(current, grid, width, height);
+    const neighbors = getUnvisitedNeighbors(current, fullMaze, quadWidth, quadHeight);
 
     if (neighbors.length > 0) {
       stack.push(current);
@@ -41,10 +46,12 @@ export function generateMaze(width: number, height: number): Cell[][] {
     }
   }
 
-  return grid;
+  // 4. Return the full maze with only the top-left quadrant carved out.
+  return fullMaze;
 }
 
-function getUnvisitedNeighbors(cell: Cell, grid: Cell[][], width: number, height: number): Cell[] {
+// Helper to get unvisited neighbors within the quadrant boundaries
+function getUnvisitedNeighbors(cell: Cell, grid: Cell[][], quadWidth: number, quadHeight: number): Cell[] {
   const neighbors: Cell[] = [];
   const { x, y } = cell;
 
@@ -52,12 +59,12 @@ function getUnvisitedNeighbors(cell: Cell, grid: Cell[][], width: number, height
   if (y > 0 && !grid[y - 1][x].visited) {
     neighbors.push(grid[y - 1][x]);
   }
-  // Right
-  if (x < width - 1 && !grid[y][x + 1].visited) {
+  // Right (check against quadWidth)
+  if (x < quadWidth - 1 && !grid[y][x + 1].visited) {
     neighbors.push(grid[y][x + 1]);
   }
-  // Bottom
-  if (y < height - 1 && !grid[y + 1][x].visited) {
+  // Bottom (check against quadHeight)
+  if (y < quadHeight - 1 && !grid[y + 1][x].visited) {
     neighbors.push(grid[y + 1][x]);
   }
   // Left
@@ -68,6 +75,7 @@ function getUnvisitedNeighbors(cell: Cell, grid: Cell[][], width: number, height
   return neighbors;
 }
 
+// Helper to remove walls between two cells
 function removeWall(a: Cell, b: Cell) {
   const x = a.x - b.x;
   const y = a.y - b.y;

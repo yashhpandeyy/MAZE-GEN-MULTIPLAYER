@@ -34,8 +34,11 @@ const MazeDisplay = forwardRef(
             {maze.map((row, y) =>
               row.map((cell, x) => {
                 const isPlayer1Start = x === 0 && y === 0;
+                const isPlayer2Start = x === width - 1 && y === 0;
+                const isPlayer3Start = x === 0 && y === height - 1;
+                const isPlayer4Start = x === width - 1 && y === height - 1;
 
-                if (isPlayer1Start) {
+                if (isPlayer1Start || isPlayer2Start || isPlayer3Start || isPlayer4Start) {
                   return (
                     <rect
                       key={`corner-${x}-${y}`}
