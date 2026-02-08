@@ -8,7 +8,7 @@ export interface Cell {
   visited: boolean;
 }
 
-// Generates a maze only in the top-left quadrant of the grid.
+// Generates a maze in the top half, mirrored for two players.
 export function generateMaze(width: number, height: number): Cell[][] {
   // 1. Initialize the full grid with all walls present.
   const fullMaze: Cell[][] = Array.from({ length: height }, (_, y) =>
@@ -23,11 +23,11 @@ export function generateMaze(width: number, height: number): Cell[][] {
     }))
   );
 
-  // 2. Define the dimensions of the top-left quadrant.
-  const quadWidth = Math.ceil(width / 2);
-  const quadHeight = Math.ceil(height / 2);
+  // 2. Define the dimensions of a quadrant.
+  const quadWidth = width / 2;
+  const quadHeight = height / 2;
 
-  // 3. Run Randomized DFS only on the top-left quadrant.
+  // 3. Run Randomized DFS on the top-left quadrant.
   const stack: Cell[] = [];
   let current = fullMaze[0][0];
   current.visited = true;
@@ -46,7 +46,22 @@ export function generateMaze(width: number, height: number): Cell[][] {
     }
   }
 
-  // 4. Return the full maze with only the top-left quadrant carved out.
+  // 4. Mirror the top-left quadrant to the top-right.
+  for (let y = 0; y < quadHeight; y++) {
+    for (let x = 0; x < quadWidth; x++) {
+      const sourceCell = fullMaze[y][x];
+      const mirrorX = width - 1 - x;
+      const mirrorCell = fullMaze[y][mirrorX];
+      
+      mirrorCell.top = sourceCell.top;
+      mirrorCell.bottom = sourceCell.bottom;
+      mirrorCell.left = sourceCell.right; // Horizontal mirror
+      mirrorCell.right = sourceCell.left;
+      mirrorCell.visited = sourceCell.visited;
+    }
+  }
+
+  // Return the full maze.
   return fullMaze;
 }
 
