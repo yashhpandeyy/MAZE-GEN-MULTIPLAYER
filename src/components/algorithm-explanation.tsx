@@ -103,7 +103,7 @@ const centerY = Math.floor(height / 2);
 // Remove walls of cells adjacent to the center, opening a path
 if (centerY > 0) fullMaze[centerY - 1][centerX].bottom = false;
 if (centerY < height - 1) fullMaze[centerY + 1][centerX].top = false;
-if (centerX > 0) fullMaze[centerY][centerX - 1].right = false;
+if (centerX > 0) full.maze[centerY][centerX - 1].right = false;
 if (centerX < width - 1) fullMaze[centerY][centerX + 1].left = false;
 
 // Also remove the center cell's own walls facing those neighbors
@@ -111,6 +111,36 @@ fullMaze[centerY][centerX].top = false;
 fullMaze[centerY][centerX].bottom = false;
 fullMaze[centerY][centerX].left = false;
 fullMaze[centerY][centerX].right = false;`}
+            </code>
+          </pre>
+        </div>
+        <div>
+          <h3 className="font-headline text-xl font-semibold mb-2">Step 4: Guarantee Solvability</h3>
+          <p className="text-muted-foreground mb-4">
+            Symmetry is essential, but it doesn't guarantee a solvable maze. The random nature of the quadrant generation might still wall off a corner from the center. To ensure fairness, we perform a final validation step. For each corner, we use a <strong>Breadth-First Search (BFS)</strong> to check if a path to the center exists. If not, we forcibly <strong>carve a direct path</strong> to guarantee every player has a route to the goal.
+          </p>
+          <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto">
+            <code className="font-code text-muted-foreground">
+{`// For each corner, carve a guaranteed path to center if none exists
+corners.forEach(corner => {
+  if (!hasPath(maze, corner, center)) {
+    carveDirectPath(maze, corner, center);
+  }
+});
+
+// Checks for a path using Breadth-First Search
+function hasPath(maze, start, end) {
+  const queue = [start];
+  const visited = new Set();
+  
+  while (queue.length > 0) {
+    const current = queue.shift();
+    if (current.x === end.x && current.y === end.y) return true;
+    
+    // ... add valid, unvisited neighbors to queue
+  }
+  return false;
+}`}
             </code>
           </pre>
         </div>

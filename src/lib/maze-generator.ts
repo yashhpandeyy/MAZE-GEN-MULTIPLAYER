@@ -89,7 +89,10 @@ export function generateMaze(width: number, height: number): Cell[][] {
   
   if (centerX < width - 1) fullMaze[centerY][centerX + 1].left = false;
   fullMaze[centerY][centerX].right = false;
-
+  
+  // After mirroring quadrants and opening center:
+  ensureCornerConnectivity(fullMaze, width, height);
+  
   return fullMaze;
 }
 
@@ -172,5 +175,84 @@ function removeWall(a: Cell, b: Cell) {
   } else if (y === -1) { // a is above b
     a.bottom = false;
     b.top = false;
+  }
+}
+
+function ensureCornerConnectivity(maze: Cell[][], width: number, height: number): void {
+  const center = { x: Math.floor(width / 2), y: Math.floor(height / 2) };
+  const corners = [
+    { x: 0, y: 0 },                    // Top-left
+    { x: width - 1, y: 0 },            // Top-right
+    { x: 0, y: height - 1 },           // Bottom-left
+    { x: width - 1, y: height - 1 }    // Bottom-right
+  ];
+
+  corners.forEach(corner => {
+    if (!hasPath(maze, corner, center, width, height)) {
+      carveDirectPath(maze, corner, center);
+    }
+  });
+}
+
+function hasPath(
+  maze: Cell[][], 
+  start: {x: number, y: number}, 
+  end: {x: number, y: number},
+  width: number,
+  height: number
+): boolean {
+  const visited = new Set<string>();
+  const queue = [start];
+  
+  while (queue.length > 0) {
+    const current = queue.shift()!;
+    const key = `${current.x},${current.y}`;
+    
+    if (current.x === end.x && current.y === end.y) return true;
+    if (visited.has(key)) continue;
+    visited.add(key);
+    
+    const cell = maze[current.y][current.x];
+    
+    // Check all 4 directions
+    if (!cell.top && current.y > 0) 
+      queue.push({x: current.x, y: current.y - 1});
+    if (!cell.bottom && current.y < height - 1) 
+      queue.push({x: current.x, y: current.y + 1});
+    if (!cell.left && current.x > 0) 
+      queue.push({x: current.x - 1, y: current.y});
+    if (!cell.right && current.x < width - 1) 
+      queue.push({x: current.x + 1, y: current.y});
+  }
+  
+  return false;
+}
+
+function carveDirectPath(
+  maze: Cell[][], 
+  from: {x: number, y: number}, 
+  to: {x: number, y: number}
+): void {
+  let x = from.x;
+  let y = from.y;
+  
+  while (x !== to.x || y !== to.y) {
+    if (x < to.x) {
+      maze[y][x].right = false;
+      maze[y][x + 1].left = false;
+      x++;
+    } else if (x > to.x) {
+      maze[y][x].left = false;
+      maze[y][x - 1].right = false;
+      x--;
+    } else if (y < to.y) {
+      maze[y][x].bottom = false;
+      maze[y + 1][x].top = false;
+      y++;
+    } else if (y > to.y) {
+      maze[y][x].top = false;
+      maze[y - 1][x].bottom = false;
+      y--;
+    }
   }
 }
