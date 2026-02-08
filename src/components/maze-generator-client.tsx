@@ -19,18 +19,18 @@ import { useToast } from '@/hooks/use-toast';
 import { LogoIcon } from './icons/logo';
 
 export function MazeGeneratorClient() {
-  const [width, setWidth] = useState(12);
-  const [height, setHeight] = useState(12);
+  const [width, setWidth] = useState(13);
+  const [height, setHeight] = useState(13);
   const [maze, setMaze] = useState<Cell[][] | null>(null);
   const [generationKey, setGenerationKey] = useState(0);
   const svgRef = useRef<SVGSVGElement>(null);
   const { toast } = useToast();
 
   const handleGenerate = () => {
-    if (width < 3 || height < 3 || width > 41 || height > 41) {
+    if (width < 3 || height < 3 || width > 41 || height > 41 || width % 2 === 0 || height % 2 === 0) {
       toast({
         title: 'Invalid Dimensions',
-        description: 'Please choose width and height between 3 and 41.',
+        description: 'Please choose odd width and height between 3 and 41.',
         variant: 'destructive',
       });
       return;
@@ -42,6 +42,7 @@ export function MazeGeneratorClient() {
 
   useEffect(() => {
     handleGenerate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDownload = () => {
@@ -77,9 +78,12 @@ export function MazeGeneratorClient() {
   };
 
   const updateDimension = (setter: React.Dispatch<React.SetStateAction<number>>, value: number) => {
-    if (value >= 3 && value <= 41) {
-      setter(value);
+    if (isNaN(value)) {
+      setter(3);
+      return;
     }
+    const clampedValue = Math.max(3, Math.min(41, value));
+    setter(clampedValue);
   };
 
   return (
@@ -106,11 +110,11 @@ export function MazeGeneratorClient() {
               <div className="space-y-2">
                 <Label htmlFor="width" className="font-medium">Width</Label>
                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" onClick={() => updateDimension(setWidth, width - 1)} disabled={width <= 3}>
+                  <Button variant="outline" size="icon" onClick={() => updateDimension(setWidth, width - 2)} disabled={width <= 3}>
                     <Minus className="h-4 w-4" />
                   </Button>
-                  <Input id="width" type="number" value={width} onChange={(e) => updateDimension(setWidth, parseInt(e.target.value) || 0)} className="text-center" min="3" max="41" />
-                  <Button variant="outline" size="icon" onClick={() => updateDimension(setWidth, width + 1)} disabled={width >= 41}>
+                  <Input id="width" type="number" value={width} onChange={(e) => updateDimension(setWidth, parseInt(e.target.value))} className="text-center" min="3" max="41" />
+                  <Button variant="outline" size="icon" onClick={() => updateDimension(setWidth, width + 2)} disabled={width >= 41}>
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>
@@ -118,11 +122,11 @@ export function MazeGeneratorClient() {
               <div className="space-y-2">
                 <Label htmlFor="height" className="font-medium">Height</Label>
                  <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" onClick={() => updateDimension(setHeight, height - 1)} disabled={height <= 3}>
+                  <Button variant="outline" size="icon" onClick={() => updateDimension(setHeight, height - 2)} disabled={height <= 3}>
                     <Minus className="h-4 w-4" />
                   </Button>
-                  <Input id="height" type="number" value={height} onChange={(e) => updateDimension(setHeight, parseInt(e.target.value) || 0)} className="text-center" min="3" max="41"/>
-                  <Button variant="outline" size="icon" onClick={() => updateDimension(setHeight, height + 1)} disabled={height >= 41}>
+                  <Input id="height" type="number" value={height} onChange={(e) => updateDimension(setHeight, parseInt(e.target.value))} className="text-center" min="3" max="41"/>
+                  <Button variant="outline" size="icon" onClick={() => updateDimension(setHeight, height + 2)} disabled={height >= 41}>
                     <Plus className="h-4 w-4" />
                   </Button>
                 </div>

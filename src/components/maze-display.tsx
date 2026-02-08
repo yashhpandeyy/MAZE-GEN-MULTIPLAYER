@@ -15,6 +15,8 @@ const MazeDisplay = forwardRef(
 
     const height = maze.length;
     const width = maze[0].length;
+    const centerX = Math.floor(width / 2);
+    const centerY = Math.floor(height / 2);
 
     const svgWidth = width * cellSize;
     const svgHeight = height * cellSize;
@@ -49,6 +51,20 @@ const MazeDisplay = forwardRef(
                     />
                   );
                 }
+
+                if (x === centerX && y === centerY) {
+                  return (
+                    <rect
+                      key={`center-${x}-${y}`}
+                      x={x * cellSize}
+                      y={y * cellSize}
+                      width={cellSize}
+                      height={cellSize}
+                      fill="hsl(var(--destructive))"
+                    />
+                  );
+                }
+                
                 return null;
               })
             )}
