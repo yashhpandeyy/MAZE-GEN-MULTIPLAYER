@@ -57,7 +57,37 @@ export function MazeGeneratorClient() {
     }
 
     try {
-      const svgData = new XMLSerializer().serializeToString(svgNode);
+      const clonedSvgNode = svgNode.cloneNode(true) as SVGSVGElement;
+
+      // Get computed styles from original SVG and apply to clone
+      const originalLinesGroup = svgNode.querySelector('g[stroke="hsl(var(--foreground))"]');
+      if (originalLinesGroup) {
+        const strokeColor = getComputedStyle(originalLinesGroup).stroke;
+        const clonedLinesGroup = clonedSvgNode.querySelector('g[stroke="hsl(var(--foreground))"]');
+        if (clonedLinesGroup) {
+          clonedLinesGroup.setAttribute('stroke', strokeColor);
+        }
+      }
+
+      const originalCornerRects = svgNode.querySelectorAll('rect[fill="hsl(var(--chart-2))"]');
+      if (originalCornerRects.length > 0) {
+        const fillColor = getComputedStyle(originalCornerRects[0]).fill;
+        const clonedCornerRects = clonedSvgNode.querySelectorAll('rect[fill="hsl(var(--chart-2))"]');
+        clonedCornerRects.forEach((rect) => {
+          rect.setAttribute('fill', fillColor);
+        });
+      }
+
+      const originalCenterRect = svgNode.querySelector('rect[fill="hsl(var(--destructive))"]');
+      if (originalCenterRect) {
+        const fillColor = getComputedStyle(originalCenterRect).fill;
+        const clonedCenterRect = clonedSvgNode.querySelector('rect[fill="hsl(var(--destructive))"]');
+        if (clonedCenterRect) {
+          clonedCenterRect.setAttribute('fill', fillColor);
+        }
+      }
+
+      const svgData = new XMLSerializer().serializeToString(clonedSvgNode);
       const canvas = document.createElement('canvas');
 
       const svgSize = svgNode.viewBox.baseVal;
