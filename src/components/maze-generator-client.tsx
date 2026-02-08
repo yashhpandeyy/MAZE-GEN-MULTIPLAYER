@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { LogoIcon } from './icons/logo';
+import { MazePossibilities } from './maze-possibilities';
 
 export function MazeGeneratorClient() {
   const [width, setWidth] = useState(12);
@@ -78,13 +79,13 @@ export function MazeGeneratorClient() {
         });
       }
 
-      const originalCenterRect = svgNode.querySelector('rect[fill="hsl(var(--destructive))"]');
-      if (originalCenterRect) {
-        const fillColor = getComputedStyle(originalCenterRect).fill;
-        const clonedCenterRect = clonedSvgNode.querySelector('rect[fill="hsl(var(--destructive))"]');
-        if (clonedCenterRect) {
-          clonedCenterRect.setAttribute('fill', fillColor);
-        }
+      const originalCenterRects = svgNode.querySelectorAll('rect[fill="hsl(var(--destructive))"]');
+      if (originalCenterRects.length > 0) {
+        const fillColor = getComputedStyle(originalCenterRects[0]).fill;
+        const clonedCenterRects = clonedSvgNode.querySelectorAll('rect[fill="hsl(var(--destructive))"]');
+        clonedCenterRects.forEach(rect => {
+          rect.setAttribute('fill', fillColor);
+        })
       }
 
       const svgData = new XMLSerializer().serializeToString(clonedSvgNode);
@@ -165,6 +166,7 @@ export function MazeGeneratorClient() {
         <h1 className="font-headline text-5xl md:text-6xl font-bold tracking-tight text-primary">
           Labyrinth Forge
         </h1>
+        <MazePossibilities width={width} height={height} />
         <p className="mt-2 font-body text-lg text-muted-foreground max-w-2xl">
           Craft intricate mazes with a single click. Adjust the grid size and let our procedural algorithm forge a unique challenge every time.
         </p>
