@@ -62,31 +62,36 @@ function generateQuadrantMaze(width, height) {
           </ul>
           <pre className="bg-muted p-4 rounded-md text-sm overflow-x-auto">
             <code className="font-code text-muted-foreground">
-{`// Inside the main generateMaze function
-for (let y = 0; y < quadHeight; y++) {
-  for (let x = 0; x < quadWidth; x++) {
-    const sourceCell = quadrant[y][x];
-    const xMirror = width - 1 - x;
-    const yMirror = height - 1 - y;
+{`// Inside the main generateMaze function's loop
+const sourceCell = quadrant[y][x];
+const xMirror = width - 1 - x;
+const yMirror = height - 1 - y;
 
-    // Top-right (Mirrored horizontally)
-    let cellTR = fullMaze[y][xMirror];
-    cellTR.right = sourceCell.left;  // SWAPPED
-    cellTR.left = sourceCell.right; // SWAPPED
-    
-    // Bottom-left (Mirrored vertically)
-    let cellBL = fullMaze[yMirror][x];
-    cellBL.top = sourceCell.bottom;   // SWAPPED
-    cellBL.bottom = sourceCell.top;     // SWAPPED
+// Top-left is a direct copy
+fullMaze[y][x] = sourceCell;
 
-    // Bottom-right (Mirrored on both axes)
-    let cellBR = fullMaze[yMirror][xMirror];
-    cellBR.top = sourceCell.bottom;     // SWAPPED
-    cellBR.right = sourceCell.left;     // SWAPPED
-    cellBR.bottom = sourceCell.top;     // SWAPPED
-    cellBR.left = sourceCell.right;   // SWAPPED
-  }
-}`}
+// Top-right (horizontal mirror)
+fullMaze[y][xMirror] = { 
+    ...sourceCell, 
+    left: sourceCell.right,  // SWAPPED
+    right: sourceCell.left,  // SWAPPED
+};
+
+// Bottom-left (vertical mirror)
+fullMaze[yMirror][x] = {
+    ...sourceCell,
+    top: sourceCell.bottom, // SWAPPED
+    bottom: sourceCell.top, // SWAPPED
+};
+
+// Bottom-right (both mirrors)
+fullMaze[yMirror][xMirror] = {
+    ...sourceCell,
+    top: sourceCell.bottom,
+    bottom: sourceCell.top,
+    left: sourceCell.right,
+    right: sourceCell.left,
+};`}
             </code>
           </pre>
         </div>
@@ -103,7 +108,7 @@ const centerY = Math.floor(height / 2);
 // Remove walls of cells adjacent to the center, opening a path
 if (centerY > 0) fullMaze[centerY - 1][centerX].bottom = false;
 if (centerY < height - 1) fullMaze[centerY + 1][centerX].top = false;
-if (centerX > 0) full.maze[centerY][centerX - 1].right = false;
+if (centerX > 0) fullMaze[centerY][centerX - 1].right = false;
 if (centerX < width - 1) fullMaze[centerY][centerX + 1].left = false;
 
 // Also remove the center cell's own walls facing those neighbors

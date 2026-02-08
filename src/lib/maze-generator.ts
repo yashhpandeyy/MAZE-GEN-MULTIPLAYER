@@ -36,40 +36,40 @@ export function generateMaze(width: number, height: number): Cell[][] {
       const yMirror = height - 1 - y;
 
       // Top-left (original)
-      if (y < height && x < width) {
-        let cellTL = fullMaze[y][x];
-        cellTL.top = sourceCell.top;
-        cellTL.right = sourceCell.right;
-        cellTL.bottom = sourceCell.bottom;
-        cellTL.left = sourceCell.left;
-      }
+      fullMaze[y][x] = { ...sourceCell };
 
       // Top-right (mirrored horizontally)
-      if (y < height && xMirror < width) {
-        let cellTR = fullMaze[y][xMirror];
-        cellTR.top = sourceCell.top;
-        cellTR.right = sourceCell.left; // Swapped
-        cellTR.bottom = sourceCell.bottom;
-        cellTR.left = sourceCell.right; // Swapped
-      }
+      fullMaze[y][xMirror] = {
+        x: xMirror,
+        y: y,
+        visited: false,
+        top: sourceCell.top,
+        bottom: sourceCell.bottom,
+        left: sourceCell.right,    // SWAP
+        right: sourceCell.left,    // SWAP
+      };
       
       // Bottom-left (mirrored vertically)
-      if (yMirror < height && x < width) {
-        let cellBL = fullMaze[yMirror][x];
-        cellBL.top = sourceCell.bottom; // Swapped
-        cellBL.right = sourceCell.right;
-        cellBL.bottom = sourceCell.top; // Swapped
-        cellBL.left = sourceCell.left;
-      }
-
-      // Bottom-right (mirrored horizontally and vertically)
-      if (yMirror < height && xMirror < width) {
-        let cellBR = fullMaze[yMirror][xMirror];
-        cellBR.top = sourceCell.bottom; // Swapped
-        cellBR.right = sourceCell.left; // Swapped
-        cellBR.bottom = sourceCell.top; // Swapped
-        cellBR.left = sourceCell.right; // Swapped
-      }
+      fullMaze[yMirror][x] = {
+        x: x,
+        y: yMirror,
+        visited: false,
+        top: sourceCell.bottom,    // SWAP
+        bottom: sourceCell.top,    // SWAP
+        left: sourceCell.left,
+        right: sourceCell.right,
+      };
+      
+      // Bottom-right (both mirrors)
+      fullMaze[yMirror][xMirror] = {
+        x: xMirror,
+        y: yMirror,
+        visited: false,
+        top: sourceCell.bottom,    // SWAP (vertical)
+        bottom: sourceCell.top,    // SWAP (vertical)
+        left: sourceCell.right,    // SWAP (horizontal)
+        right: sourceCell.left,    // SWAP (horizontal)
+      };
     }
   }
 
