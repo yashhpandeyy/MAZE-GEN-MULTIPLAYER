@@ -47,7 +47,7 @@ export function MazeGeneratorClient() {
 
   const handleDownload = () => {
     const svgNode = svgRef.current;
-    if (!svgNode) {
+    if (!svgNode || !svgNode.parentElement) {
       toast({
         title: 'Error',
         description: 'Could not find the maze SVG to download.',
@@ -57,21 +57,63 @@ export function MazeGeneratorClient() {
     }
 
     try {
-      svgNode.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-      const svgData = svgNode.outerHTML;
+      const svgData = new XMLSerializer().serializeToString(svgNode);
+      const canvas = document.createElement('canvas');
+
+      const svgSize = svgNode.viewBox.baseVal;
+      canvas.width = svgSize.width;
+      canvas.height = svgSize.height;
+
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        toast({
+          title: 'Download Failed',
+          description: 'Could not create canvas context to generate PNG.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const parentStyle = window.getComputedStyle(svgNode.parentElement);
+      const backgroundColor = parentStyle.backgroundColor;
+
+      const img = new Image();
       const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `labyrinth-forge-maze-${width}x${height}.svg`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+
+      img.onload = () => {
+        ctx.fillStyle = backgroundColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        URL.revokeObjectURL(url);
+
+        const pngUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.href = pngUrl;
+        link.download = `labyrinth-forge-maze-${width}x${height}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        toast({
+          title: 'Download Failed',
+          description: 'Could not load SVG image to convert to PNG.',
+          variant: 'destructive',
+        });
+      };
+
+      img.src = url;
     } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'An unexpected error occurred while preparing your download.';
       toast({
         title: 'Download Failed',
-        description: 'An unexpected error occurred while preparing your download.',
+        description: message,
         variant: 'destructive',
       });
     }
@@ -139,7 +181,7 @@ export function MazeGeneratorClient() {
               </Button>
               <Button onClick={handleDownload} variant="outline" className="w-full">
                 <Download />
-                Download SVG
+                Download PNG
               </Button>
             </CardFooter>
           </Card>
