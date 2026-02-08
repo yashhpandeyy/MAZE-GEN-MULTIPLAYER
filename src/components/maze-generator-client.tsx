@@ -20,8 +20,8 @@ import { LogoIcon } from './icons/logo';
 import { MazePossibilities } from './maze-possibilities';
 
 export function MazeGeneratorClient() {
-  const [width, setWidth] = useState(12);
-  const [height, setHeight] = useState(12);
+  const [width, setWidth] = useState(24);
+  const [height, setHeight] = useState(24);
   const [maze, setMaze] = useState<Cell[][] | null>(null);
   const [generationKey, setGenerationKey] = useState(0);
   const svgRef = useRef<SVGSVGElement>(null);
