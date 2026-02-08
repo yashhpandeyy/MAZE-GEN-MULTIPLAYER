@@ -28,6 +28,31 @@ const MazeDisplay = forwardRef(
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
           className="max-w-full max-h-full"
         >
+          <g>
+            {maze.map((row, y) =>
+              row.map((cell, x) => {
+                const isCorner =
+                  (x === 0 && y === 0) ||
+                  (x === width - 1 && y === 0) ||
+                  (x === 0 && y === height - 1) ||
+                  (x === width - 1 && y === height - 1);
+
+                if (isCorner) {
+                  return (
+                    <rect
+                      key={`corner-${x}-${y}`}
+                      x={x * cellSize}
+                      y={y * cellSize}
+                      width={cellSize}
+                      height={cellSize}
+                      fill="hsl(var(--chart-2))"
+                    />
+                  );
+                }
+                return null;
+              })
+            )}
+          </g>
           <g stroke="hsl(var(--foreground))" strokeWidth={2} strokeLinecap="round">
             {maze.map((row, y) =>
               row.map((cell, x) => {
