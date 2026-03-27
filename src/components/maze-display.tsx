@@ -5,17 +5,17 @@ import type { Cell } from '@/lib/maze-generator';
 interface MazeDisplayProps {
   maze: Cell[][];
   cellSize: number;
+  activeCells?: Set<string>; // For animation highlighting
 }
 
 const MazeDisplay = forwardRef(
-  ({ maze, cellSize }: MazeDisplayProps, ref: ForwardedRef<SVGSVGElement>) => {
+  ({ maze, cellSize, activeCells }: MazeDisplayProps, ref: ForwardedRef<SVGSVGElement>) => {
     if (!maze || maze.length === 0 || maze[0].length === 0) {
       return null;
     }
 
     const height = maze.length;
     const width = maze[0].length;
-
     const svgWidth = width * cellSize;
     const svgHeight = height * cellSize;
 
@@ -27,18 +27,28 @@ const MazeDisplay = forwardRef(
           height="100%"
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
           preserveAspectRatio="xMidYMid meet"
-          className="max-w-full max-h-full transition-all duration-700 ease-out animate-fade-in"
+          className="max-w-full max-h-full transition-all duration-300 ease-out"
         >
           {/* Grid Background */}
-          <rect width={svgWidth} height={svgHeight} fill="rgba(0,0,0,0.2)" />
+          <rect width={svgWidth} height={svgHeight} fill="rgba(0,0,0,0.4)" />
           
           <g>
             {maze.map((row, y) =>
               row.map((cell, x) => {
+                const cellId = `${x}-${y}`;
+                const isActive = activeCells?.has(cellId);
+                const isVisited = cell.visited;
+
+                // Player Starts
                 const isPlayer1Start = x === 0 && y === 0;
                 const isPlayer2Start = x === width - 1 && y === 0;
                 const isPlayer3Start = x === 0 && y === height - 1;
                 const isPlayer4Start = x === width - 1 && y === height - 1;
+
+                // Center Exit
+                const isCenterCell =
+                  (x === width / 2 - 1 || x === width / 2) &&
+                  (y === height / 2 - 1 || y === height / 2);
 
                 if (isPlayer1Start || isPlayer2Start || isPlayer3Start || isPlayer4Start) {
                   return (
@@ -49,14 +59,10 @@ const MazeDisplay = forwardRef(
                       width={cellSize}
                       height={cellSize}
                       fill="hsl(var(--primary))"
-                      className="opacity-40"
+                      className="opacity-60"
                     />
                   );
                 }
-
-                const isCenterCell =
-                  (x === width / 2 - 1 || x === width / 2) &&
-                  (y === height / 2 - 1 || y === height / 2);
 
                 if (isCenterCell) {
                   return (
@@ -67,7 +73,36 @@ const MazeDisplay = forwardRef(
                       width={cellSize}
                       height={cellSize}
                       fill="hsl(var(--destructive))"
+                      className={isVisited ? "animate-pulse" : "opacity-20"}
+                    />
+                  );
+                }
+
+                // Active Head Visualization
+                if (isActive) {
+                  return (
+                    <rect
+                      key={`active-${x}-${y}`}
+                      x={x * cellSize}
+                      y={y * cellSize}
+                      width={cellSize}
+                      height={cellSize}
+                      fill="hsl(var(--accent))"
                       className="animate-pulse"
+                    />
+                  );
+                }
+
+                // Carved/Visited Path Visual
+                if (isVisited) {
+                  return (
+                    <rect
+                      key={`visited-${x}-${y}`}
+                      x={x * cellSize}
+                      y={y * cellSize}
+                      width={cellSize}
+                      height={cellSize}
+                      fill="rgba(255,255,255,0.05)"
                     />
                   );
                 }
@@ -77,7 +112,7 @@ const MazeDisplay = forwardRef(
             )}
           </g>
           
-          <g stroke="white" strokeWidth={1.5} strokeLinecap="square" className="opacity-80">
+          <g stroke="white" strokeWidth={1.5} strokeLinecap="square" className="opacity-90">
             {maze.map((row, y) =>
               row.map((cell, x) => {
                 const lines = [];
