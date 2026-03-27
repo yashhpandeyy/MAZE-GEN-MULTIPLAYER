@@ -1,29 +1,29 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Wand2, Download, Minus, Plus } from 'lucide-react';
+import { Wand2, Download, Minus, Plus, Timer, Swords, Layers, Settings2 } from 'lucide-react';
 import { generateMaze, type Cell } from '@/lib/maze-generator';
 import { MazeDisplay } from '@/components/maze-display';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/hooks/use-toast';
+import { Separator } from '@/components/ui/separator';
 import { LogoIcon } from './icons/logo';
-import { MazePossibilities } from './maze-possibilities';
 
 export function MazeGeneratorClient() {
+  // Maze Settings
   const [width, setWidth] = useState(24);
   const [height, setHeight] = useState(24);
   const [maze, setMaze] = useState<Cell[][] | null>(null);
   const [generationKey, setGenerationKey] = useState(0);
+  
+  // Game Settings
+  const [bombTimer, setBombTimer] = useState(45);
+  const [roundDuration, setRoundDuration] = useState(120);
+  const [totalRounds, setTotalRounds] = useState(5);
+
   const svgRef = useRef<SVGSVGElement>(null);
   const { toast } = useToast();
 
@@ -48,178 +48,220 @@ export function MazeGeneratorClient() {
 
   const handleDownload = () => {
     const svgNode = svgRef.current;
-    if (!svgNode || !svgNode.parentElement) {
-      toast({
-        title: 'Error',
-        description: 'Could not find the maze SVG to download.',
-        variant: 'destructive',
-      });
-      return;
-    }
+    if (!svgNode || !svgNode.parentElement) return;
 
     try {
       const clonedSvgNode = svgNode.cloneNode(true) as SVGSVGElement;
-
-      // Get computed styles from original SVG and apply to clone
-      const originalLinesGroup = svgNode.querySelector('g[stroke="hsl(var(--foreground))"]');
-      if (originalLinesGroup) {
-        const strokeColor = getComputedStyle(originalLinesGroup).stroke;
-        const clonedLinesGroup = clonedSvgNode.querySelector('g[stroke="hsl(var(--foreground))"]');
-        if (clonedLinesGroup) {
-          clonedLinesGroup.setAttribute('stroke', strokeColor);
-        }
-      }
-
-      const originalCornerRects = svgNode.querySelectorAll('rect[fill="hsl(var(--chart-2))"]');
-      if (originalCornerRects.length > 0) {
-        const fillColor = getComputedStyle(originalCornerRects[0]).fill;
-        const clonedCornerRects = clonedSvgNode.querySelectorAll('rect[fill="hsl(var(--chart-2))"]');
-        clonedCornerRects.forEach((rect) => {
-          rect.setAttribute('fill', fillColor);
-        });
-      }
-
-      const originalCenterRects = svgNode.querySelectorAll('rect[fill="hsl(var(--destructive))"]');
-      if (originalCenterRects.length > 0) {
-        const fillColor = getComputedStyle(originalCenterRects[0]).fill;
-        const clonedCenterRects = clonedSvgNode.querySelectorAll('rect[fill="hsl(var(--destructive))"]');
-        clonedCenterRects.forEach(rect => {
-          rect.setAttribute('fill', fillColor);
-        })
-      }
-
       const svgData = new XMLSerializer().serializeToString(clonedSvgNode);
       const canvas = document.createElement('canvas');
-
       const svgSize = svgNode.viewBox.baseVal;
       canvas.width = svgSize.width;
       canvas.height = svgSize.height;
-
       const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        toast({
-          title: 'Download Failed',
-          description: 'Could not create canvas context to generate PNG.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      const parentStyle = window.getComputedStyle(svgNode.parentElement);
-      const backgroundColor = parentStyle.backgroundColor;
+      if (!ctx) return;
 
       const img = new Image();
       const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
       const url = URL.createObjectURL(blob);
 
       img.onload = () => {
-        ctx.fillStyle = backgroundColor;
+        ctx.fillStyle = '#020617'; // slate-950
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(img, 0, 0);
         URL.revokeObjectURL(url);
-
-        const pngUrl = canvas.toDataURL('image/png');
         const link = document.createElement('a');
-        link.href = pngUrl;
-        link.download = `procedural-maze-gen-${width}x${height}.png`;
-        document.body.appendChild(link);
+        link.href = canvas.toDataURL('image/png');
+        link.download = `maze-config-${width}x${height}.png`;
         link.click();
-        document.body.removeChild(link);
       };
-
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        toast({
-          title: 'Download Failed',
-          description: 'Could not load SVG image to convert to PNG.',
-          variant: 'destructive',
-        });
-      };
-
       img.src = url;
-    } catch (error) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : 'An unexpected error occurred while preparing your download.';
-      toast({
-        title: 'Download Failed',
-        description: message,
-        variant: 'destructive',
-      });
+    } catch (e) {
+      toast({ title: 'Download Failed', variant: 'destructive' });
     }
   };
 
   const updateDimension = (setter: React.Dispatch<React.SetStateAction<number>>, value: number) => {
-    if (isNaN(value)) {
-      setter(4);
-      return;
-    }
     const clampedValue = Math.max(4, Math.min(40, value));
     setter(clampedValue);
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto flex flex-col items-center gap-8">
-      <header className="text-center flex flex-col items-center gap-4">
-        <LogoIcon className="w-16 h-16 text-primary" />
-        <h1 className="font-headline text-5xl md:text-6xl font-bold tracking-tight text-primary">
-          Procedural Maze Gen
-        </h1>
-        <MazePossibilities width={width} height={height} />
-        <p className="mt-2 font-body text-lg text-muted-foreground max-w-3xl">
-          This tool procedurally generates mazes using a unique, custom-developed algorithm. It forges a labyrinth by first creating a perfect maze in a single quadrant, then applying a four-way symmetrical mirroring with custom wall-swapping logic. This guarantees the path from each of the four corners to the center is perfectly balanced.
-        </p>
-      </header>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 w-full">
-        <div className="lg:col-span-1">
-          <Card className="shadow-lg">
-            <CardHeader>
-              <CardTitle className="font-headline">Customize Your Maze</CardTitle>
-              <CardDescription>
-                Define the dimensions of your labyrinth.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="width" className="font-medium">Width</Label>
-                <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" onClick={() => updateDimension(setWidth, width - 2)} disabled={width <= 4}>
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                  <Input id="width" type="number" value={width} onChange={(e) => updateDimension(setWidth, parseInt(e.target.value))} className="text-center" min="4" max="40" />
-                  <Button variant="outline" size="icon" onClick={() => updateDimension(setWidth, width + 2)} disabled={width >= 40}>
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="height" className="font-medium">Height</Label>
-                 <div className="flex items-center gap-2">
-                  <Button variant="outline" size="icon" onClick={() => updateDimension(setHeight, height - 2)} disabled={height <= 4}>
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                  <Input id="height" type="number" value={height} onChange={(e) => updateDimension(setHeight, parseInt(e.target.value))} className="text-center" min="4" max="40"/>
-                  <Button variant="outline" size="icon" onClick={() => updateDimension(setHeight, height + 2)} disabled={height >= 40}>
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter className="flex flex-col sm:flex-row gap-2">
-              <Button onClick={handleGenerate} className="w-full bg-accent hover:bg-accent/90 text-accent-foreground">
-                <Wand2 />
-                Generate New Maze
-              </Button>
-              <Button onClick={handleDownload} variant="outline" className="w-full">
-                <Download />
-                Download PNG
-              </Button>
-            </CardFooter>
-          </Card>
+    <div className="w-full max-w-7xl">
+      {/* Header */}
+      <div className="mb-12 flex items-center gap-4">
+        <div className="rounded-xl bg-primary/20 p-3 ring-1 ring-primary/40 backdrop-blur-md">
+          <LogoIcon className="h-10 w-10 text-primary" />
         </div>
-        <div className="lg:col-span-2 min-h-[300px] lg:min-h-[500px]">
-          {maze && <MazeDisplay key={generationKey} ref={svgRef} maze={maze} cellSize={25} />}
+        <div>
+          <h1 className="font-headline text-4xl font-bold tracking-tighter text-white uppercase">
+            Procedural Maze Gen
+          </h1>
+          <p className="text-sm font-medium tracking-widest text-primary/60 uppercase">
+            Match Configuration System v2.0
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+        {/* Left Column: Settings */}
+        <div className="lg:col-span-4 space-y-6">
+          <section className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-xl">
+            <div className="mb-6 flex items-center gap-2">
+              <Settings2 className="h-5 w-5 text-primary" />
+              <h2 className="font-headline text-xl font-bold text-white uppercase tracking-tight">Map Geometry</h2>
+            </div>
+            
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <Label className="text-white/70 uppercase text-xs font-bold tracking-widest">Grid Width</Label>
+                  <span className="text-primary font-mono font-bold">{width}px</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Button variant="outline" size="icon" className="h-8 w-8 bg-white/5 border-white/10 text-white" onClick={() => updateDimension(setWidth, width - 2)}>
+                    <Minus className="h-3 w-3" />
+                  </Button>
+                  <Slider 
+                    value={[width]} 
+                    min={4} 
+                    max={40} 
+                    step={2} 
+                    onValueChange={([v]) => updateDimension(setWidth, v)}
+                    className="flex-1"
+                  />
+                  <Button variant="outline" size="icon" className="h-8 w-8 bg-white/5 border-white/10 text-white" onClick={() => updateDimension(setWidth, width + 2)}>
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <Label className="text-white/70 uppercase text-xs font-bold tracking-widest">Grid Height</Label>
+                  <span className="text-primary font-mono font-bold">{height}px</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Button variant="outline" size="icon" className="h-8 w-8 bg-white/5 border-white/10 text-white" onClick={() => updateDimension(setHeight, height - 2)}>
+                    <Minus className="h-3 w-3" />
+                  </Button>
+                  <Slider 
+                    value={[height]} 
+                    min={4} 
+                    max={40} 
+                    step={2} 
+                    onValueChange={([v]) => updateDimension(setHeight, v)}
+                    className="flex-1"
+                  />
+                  <Button variant="outline" size="icon" className="h-8 w-8 bg-white/5 border-white/10 text-white" onClick={() => updateDimension(setHeight, height + 2)}>
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+
+              <Button onClick={handleGenerate} className="w-full bg-primary hover:bg-primary/90 text-white font-bold h-12 uppercase tracking-tighter shadow-[0_0_20px_rgba(var(--primary),0.3)]">
+                <Wand2 className="mr-2 h-5 w-5" />
+                Generate Map
+              </Button>
+            </div>
+          </section>
+
+          <section className="rounded-2xl border border-white/10 bg-white/5 p-6 shadow-2xl backdrop-blur-xl">
+            <div className="mb-6 flex items-center gap-2">
+              <Swords className="h-5 w-5 text-accent" />
+              <h2 className="font-headline text-xl font-bold text-white uppercase tracking-tight">Match Rules</h2>
+            </div>
+            
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-white/50 uppercase text-[10px] font-bold tracking-widest">Bomb Timer (s)</Label>
+                  <div className="relative">
+                    <Timer className="absolute left-3 top-2.5 h-4 w-4 text-white/30" />
+                    <Input 
+                      type="number" 
+                      value={bombTimer} 
+                      onChange={(e) => setBombTimer(parseInt(e.target.value))}
+                      className="bg-white/5 border-white/10 pl-10 text-white font-mono"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-white/50 uppercase text-[10px] font-bold tracking-widest">Total Rounds</Label>
+                  <div className="relative">
+                    <Layers className="absolute left-3 top-2.5 h-4 w-4 text-white/30" />
+                    <Input 
+                      type="number" 
+                      value={totalRounds} 
+                      onChange={(e) => setTotalRounds(parseInt(e.target.value))}
+                      className="bg-white/5 border-white/10 pl-10 text-white font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <Label className="text-white/70 uppercase text-xs font-bold tracking-widest">Round Duration</Label>
+                  <span className="text-accent font-mono font-bold">{roundDuration}s</span>
+                </div>
+                <Slider 
+                  value={[roundDuration]} 
+                  min={30} 
+                  max={300} 
+                  step={10} 
+                  onValueChange={([v]) => setRoundDuration(v)}
+                />
+              </div>
+            </div>
+          </section>
+
+          <Button onClick={handleDownload} variant="ghost" className="w-full text-white/50 hover:text-white hover:bg-white/10">
+            <Download className="mr-2 h-4 w-4" />
+            Export Config
+          </Button>
+        </div>
+
+        {/* Right Column: Preview */}
+        <div className="lg:col-span-8 flex flex-col gap-4">
+          <div className="relative flex-1 rounded-2xl border border-white/10 bg-black/40 p-1 shadow-2xl backdrop-blur-sm overflow-hidden min-h-[500px]">
+            {/* Viewport Overlay */}
+            <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/60">Live Preview</span>
+            </div>
+            
+            <div className="absolute inset-0 flex items-center justify-center p-8">
+              {maze && (
+                <div className="w-full h-full max-w-full max-h-full">
+                  <MazeDisplay key={generationKey} ref={svgRef} maze={maze} cellSize={25} />
+                </div>
+              )}
+            </div>
+
+            {/* Corner Accents */}
+            <div className="absolute top-0 left-0 h-4 w-4 border-t-2 border-l-2 border-primary/40"></div>
+            <div className="absolute top-0 right-0 h-4 w-4 border-t-2 border-r-2 border-primary/40"></div>
+            <div className="absolute bottom-0 left-0 h-4 w-4 border-b-2 border-l-2 border-primary/40"></div>
+            <div className="absolute bottom-0 right-0 h-4 w-4 border-b-2 border-r-2 border-primary/40"></div>
+          </div>
+          
+          <div className="flex justify-between items-center px-4 py-2 bg-white/5 rounded-lg border border-white/10">
+            <div className="flex gap-8">
+              <div>
+                <span className="block text-[10px] text-white/40 uppercase font-bold tracking-widest">Difficulty</span>
+                <span className="text-sm text-white font-mono uppercase tracking-tighter">Class {Math.floor((width + height) / 10)}</span>
+              </div>
+              <Separator orientation="vertical" className="h-8 bg-white/10" />
+              <div>
+                <span className="block text-[10px] text-white/40 uppercase font-bold tracking-widest">Symmetry</span>
+                <span className="text-sm text-primary font-mono uppercase tracking-tighter">Perfect 4-Way</span>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="block text-[10px] text-white/40 uppercase font-bold tracking-widest">Status</span>
+              <span className="text-sm text-green-400 font-mono uppercase tracking-tighter italic">Ready to deploy</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

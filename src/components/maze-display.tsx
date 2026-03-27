@@ -20,14 +20,18 @@ const MazeDisplay = forwardRef(
     const svgHeight = height * cellSize;
 
     return (
-      <div className="flex justify-center items-center w-full h-full p-4 bg-card rounded-lg shadow-lg animate-fade-in">
+      <div className="flex justify-center items-center w-full h-full overflow-hidden">
         <svg
           ref={ref}
           width="100%"
           height="100%"
           viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-          className="max-w-full max-h-full"
+          preserveAspectRatio="xMidYMid meet"
+          className="max-w-full max-h-full transition-all duration-700 ease-out animate-fade-in"
         >
+          {/* Grid Background */}
+          <rect width={svgWidth} height={svgHeight} fill="rgba(0,0,0,0.2)" />
+          
           <g>
             {maze.map((row, y) =>
               row.map((cell, x) => {
@@ -44,7 +48,8 @@ const MazeDisplay = forwardRef(
                       y={y * cellSize}
                       width={cellSize}
                       height={cellSize}
-                      fill="hsl(var(--chart-2))"
+                      fill="hsl(var(--primary))"
+                      className="opacity-40"
                     />
                   );
                 }
@@ -62,6 +67,7 @@ const MazeDisplay = forwardRef(
                       width={cellSize}
                       height={cellSize}
                       fill="hsl(var(--destructive))"
+                      className="animate-pulse"
                     />
                   );
                 }
@@ -70,7 +76,8 @@ const MazeDisplay = forwardRef(
               })
             )}
           </g>
-          <g stroke="hsl(var(--foreground))" strokeWidth={2} strokeLinecap="round">
+          
+          <g stroke="white" strokeWidth={1.5} strokeLinecap="square" className="opacity-80">
             {maze.map((row, y) =>
               row.map((cell, x) => {
                 const lines = [];
@@ -79,18 +86,10 @@ const MazeDisplay = forwardRef(
                 const x2 = (x + 1) * cellSize;
                 const y2 = (y + 1) * cellSize;
 
-                if (cell.top) {
-                  lines.push(<line key={`top-${x}-${y}`} x1={x1} y1={y1} x2={x2} y2={y1} />);
-                }
-                if (cell.right) {
-                  lines.push(<line key={`right-${x}-${y}`} x1={x2} y1={y1} x2={x2} y2={y2} />);
-                }
-                if (cell.bottom) {
-                  lines.push(<line key={`bottom-${x}-${y}`} x1={x1} y1={y2} x2={x2} y2={y2} />);
-                }
-                if (cell.left) {
-                  lines.push(<line key={`left-${x}-${y}`} x1={x1} y1={y1} x2={x1} y2={y2} />);
-                }
+                if (cell.top) lines.push(<line key={`top-${x}-${y}`} x1={x1} y1={y1} x2={x2} y2={y1} />);
+                if (cell.right) lines.push(<line key={`right-${x}-${y}`} x1={x2} y1={y1} x2={x2} y2={y2} />);
+                if (cell.bottom) lines.push(<line key={`bottom-${x}-${y}`} x1={x1} y1={y2} x2={x2} y2={y2} />);
+                if (cell.left) lines.push(<line key={`left-${x}-${y}`} x1={x1} y1={y1} x2={x1} y2={y2} />);
                 return lines;
               })
             )}
