@@ -1,31 +1,29 @@
-Our Algorithm: Symmetrical Depth-First Search
-You're right, this isn't a standard, off-the-shelf algorithm. We've forged our own by adapting a classic computer science method to meet our specific goal: perfect four-player fairness.
-The Algorithm Steps
-The process combines a standard maze algorithm with our own custom mirroring logic.
+# Procedural Maze Gen
 
-Step 1: Generate a Quadrant with DFS. We start with a classic algorithm, Randomized Depth-First Search (DFS), to carve a perfect maze (one with no loops) within just the top-left quadrant.
-Step 2: Open a Path to the Center. Before mirroring, we remove the bottom and right walls of the quadrant's corner-most cell. When mirrored, this creates the 2x2 opening in the center of the full maze.
-Step 3: Apply Our Custom Mirroring Logic. This is our unique tweak. The single quadrant is mirrored across both axes, but we must correctly swap the walls to ensure the paths connect seamlessly.
-For the horizontal mirror, a cell's `left` wall becomes the new `right` wall.
-For the vertical mirror, a cell's `top` wall becomes the new `bottom` wall.
-Step 4: The Result: A Uniquely Fair Challenge. This combination ensures that while each path is a mirror image, the length and complexity are identical for all four players, creating a truly balanced and competitive experience.
-Core Logic Snippet
-The key is generating one quadrant and then performing four-way mirroring with our custom wall swaps.
+An interactive web application designed to create complex, symmetrical mazes using a unique, custom-developed algorithm. Built for competitive fairness and aesthetic precision.
 
-// After generating a single quadrant...
-quadrant[quadHeight - 1][quadWidth - 1].right = false;
-quadrant[quadHeight - 1][quadWidth - 1].bottom = false;
+## The Algorithm: Symmetrical Depth-First Search
 
-// ... then, for each cell in the quadrant, create 4 cells in the full maze.
+This isn't a standard, off-the-shelf algorithm. We've forged our own by adapting a classic computer science method to meet the specific goal of perfect four-player fairness.
 
-// Bottom-Right (Horizontal & Vertical Mirror)
-const brX = width - 1 - x;
-const brY = height - 1 - y;
-fullMaze[brY][brX] = {
-  //...
-  top: sourceCell.bottom, // Vertical Swap
-  bottom: sourceCell.top, // Vertical Swap
-  left: sourceCell.right, // Horizontal Swap
-  right: sourceCell.left, // Horizontal Swap
-  //...
-};
+### The Process
+
+1.  **Generate a Quadrant with DFS:** We start with a classic Randomized Depth-First Search (DFS) to carve a perfect maze (one with no loops) within just the top-left quadrant.
+2.  **Open a Path to the Center:** Before mirroring, we remove the bottom and right walls of the quadrant's corner-most cell.
+3.  **Apply Custom Mirroring Logic:** The quadrant is mirrored across both axes. We use custom wall-swap logic to ensure paths connect seamlessly (e.g., a `left` wall in the original becomes a `right` wall in the horizontal mirror).
+4.  **The Result:** A perfectly balanced challenge where all four players have identical path complexity to the center.
+
+## Tech Stack
+
+- **Framework:** Next.js 15 (App Router)
+- **Styling:** Tailwind CSS
+- **UI Components:** Shadcn UI
+- **Icons:** Lucide React
+- **Animation:** Custom requestAnimationFrame loop for real-time carving visualization.
+
+## Getting Started
+
+1.  Clone the repository.
+2.  Install dependencies: `npm install`
+3.  Run the development server: `npm run dev`
+4.  Open [http://localhost:9002](http://localhost:9002) in your browser.
